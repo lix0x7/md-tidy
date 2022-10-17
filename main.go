@@ -1,22 +1,30 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
 )
 
+var (
+	help    = flag.String("help", "", "展示帮助信息")
+	isCheck = flag.Bool("check", false, "仅检查待清除的图片，不实际进行删除操作")
+)
+
 func main() {
-	removeUselessImages()
+	flag.Parse()
+	removeUselessImages(*isCheck)
 }
 
-func removeUselessImages() {
+func removeUselessImages(isCheck bool) {
 	docs := listDocFiles()
 	images := listImgFiles()
-	imageMap := make(map[string]bool, 100) // 图像资源的文件名
+	imageMap := make(map[string]bool, 128) // 图像资源的文件名
 	for _, image := range images {
 		imageMap[image] = false
 	}
@@ -42,7 +50,7 @@ func removeUselessImages() {
 	count := 0
 	for image, useful := range imageMap {
 		if !useful {
-			err := purge(image)
+			err := purge(image, isCheck)
 			if err != nil {
 				continue
 			}
@@ -87,9 +95,13 @@ func markRemove(path string) (err error) {
 }
 
 // 删除目标路径的文件
-func purge(path string) (err error) {
-	fmt.Println("removing " + path)
-	//err = os.Remove(path)
+func purge(path string, isCheck bool) (err error) {
+	if !isCheck {
+		err = os.Remove(path)
+		fmt.Println("removed " + path)
+	} else {
+		fmt.Println("[check mode]should remove " + path)
+	}
 	if err != nil {
 		fmt.Println("error when remove file, err: ", err, "path: ", path)
 	}
