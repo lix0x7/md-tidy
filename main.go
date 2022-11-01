@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -14,10 +14,18 @@ import (
 var (
 	help    = flag.String("help", "", "展示帮助信息")
 	isCheck = flag.Bool("check", false, "仅检查待清除的图片，不实际进行删除操作")
+	verbose = flag.Bool("verbose", false, "是否展示debug日志")
 )
 
 func main() {
 	flag.Parse()
+
+	if *verbose {
+		logrus.SetLevel(logrus.DebugLevel)
+	} else {
+		logrus.SetLevel(logrus.InfoLevel)
+	}
+
 	removeUselessImages(*isCheck)
 }
 
@@ -36,7 +44,7 @@ func removeUselessImages(isCheck bool) {
 	}
 
 	// iter
-	fmt.Println("start to purge useless images...")
+	logrus.Info("start to purge useless images...")
 	for image, _ := range imageMap {
 		for _, content := range docContents {
 			if strings.Contains(content, path.Base(image)) {
@@ -57,7 +65,7 @@ func removeUselessImages(isCheck bool) {
 			count++
 		}
 	}
-	fmt.Println("purged", count, "useless images.")
+	logrus.Info("purged ", count, " useless images.")
 }
 
 func listImgFiles() (files []string) {
@@ -78,7 +86,7 @@ func listFiles(suffixes []string) (files []string) {
 	err := filepath.Walk(".", func(path string, info fs.FileInfo, err error) error {
 		if !info.IsDir() && m[filepath.Ext(info.Name())] {
 			files = append(files, path)
-			fmt.Println(path)
+			logrus.Debug(path)
 		}
 		return nil
 	})
@@ -98,12 +106,12 @@ func markRemove(path string) (err error) {
 func purge(path string, isCheck bool) (err error) {
 	if !isCheck {
 		err = os.Remove(path)
-		fmt.Println("removed " + path)
+		logrus.Info("removed " + path)
 	} else {
-		fmt.Println("[check mode]should remove " + path)
+		logrus.Info("[check mode]should remove " + path)
 	}
 	if err != nil {
-		fmt.Println("error when remove file, err: ", err, "path: ", path)
+		logrus.Info("error when remove file, err: ", err, "path: ", path)
 	}
 	return
 }
