@@ -12,7 +12,6 @@ import (
 )
 
 var (
-	help    = flag.String("help", "", "展示帮助信息")
 	isCheck = flag.Bool("check", false, "仅检查待清除的图片，不实际进行删除操作")
 	verbose = flag.Bool("verbose", false, "是否展示debug日志")
 )
