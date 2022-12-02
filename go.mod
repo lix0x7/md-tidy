@@ -1,4 +1,4 @@
-module md-tidy
+module github.com/lix0x7/md-tidy
 
 go 1.18
 
